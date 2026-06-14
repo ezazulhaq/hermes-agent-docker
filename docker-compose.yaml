@@ -1,0 +1,43 @@
+services:
+  hermes-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    environment:
+      # Use OpenRouter for the LLM provider
+      - OPENAI_BASE_URL=https://openrouter.ai/api/v1
+      - OPENAI_API_KEY=${OPENROUTER_API_KEY}
+      # Enable the API server and listen on all network interfaces
+      - API_SERVER_ENABLED=true
+      - API_SERVER_HOST=0.0.0.0
+      - API_SERVER_MODEL_NAME=deepseek/deepseek-v4-flash
+      # This key secures the connection between Open WebUI and Hermes
+      - API_SERVER_KEY=${INTERNAL_API_KEY}
+    command: gateway
+    volumes:
+      - hermes_data:/opt/data
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # Point Open WebUI to the internal Hermes network
+      - OPENAI_API_BASE_URL=http://hermes-agent:8642/v1
+      - OPENAI_API_KEY=${INTERNAL_API_KEY}
+      - ENABLE_OLLAMA_API=false
+      - 'DEFAULT_MODEL_PARAMS={"temperature": 0.0, "top_p": 0.9}'
+      - ENABLE_RAG_WEB_SEARCH=true
+      - RAG_WEB_SEARCH_ENGINE=duckduckgo
+    volumes:
+      - open-webui_data:/app/backend/data
+    depends_on:
+      - hermes-agent
+volumes:
+  hermes_data:
+  open-webui_data:

@@ -1,0 +1,9 @@
+# Local environment variables
+.env
+
+# OS/IDE files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
