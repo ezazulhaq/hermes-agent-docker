@@ -14,12 +14,18 @@ services:
       # Enable the API server and listen on all network interfaces
       - API_SERVER_ENABLED=true
       - API_SERVER_HOST=0.0.0.0
-      - API_SERVER_MODEL_NAME=deepseek/deepseek-v4-flash
+      - API_SERVER_MODEL_NAME=${API_SERVER_MODEL_NAME:-deepseek/deepseek-v4-flash}
       # This key secures the connection between Open WebUI and Hermes
       - API_SERVER_KEY=${INTERNAL_API_KEY}
+      # GitHub Access Tokens
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - GH_TOKEN=${GH_TOKEN:-}
     command: gateway
     volumes:
       - hermes_data:/opt/data
+      # Mount host Git, SSH and GitHub CLI configs for authentication
+      - ~/.gitconfig:/root/.gitconfig:ro
+      - ~/.ssh:/root/.ssh:ro
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
